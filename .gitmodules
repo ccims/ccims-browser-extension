@@ -1,0 +1,6 @@
+[submodule "gropius-icons"]
+	path = gropius-icons
+	url = https://github.com/ccims/gropius-icons.git
+[submodule "src/gropius-icons"]
+	path = src/gropius-icons
+	url = https://github.com/ccims/gropius-icons.git

@@ -1,0 +1,150 @@
+mutation createIssue(
+  $title: String!
+  $body: String
+  $components: [ID!]!
+  $startDate: Date
+  $dueDate: Date
+) {
+  createIssue(
+    input: {
+      title: $title
+      body: $body
+      components: $components
+      startDate: $startDate
+      dueDate: $dueDate
+    }
+  ) {
+    issue {
+      id
+    }
+  }
+}
+
+query getIssueData($id: ID!) {
+  node(id: $id) {
+    ... on Issue {
+      id
+      title
+      body
+      isOpen
+      category
+      linksToIssues {
+        nodes {
+          id
+          title
+          isOpen
+          category
+          assignees {
+            nodes {
+              id
+            }
+          }
+          linksToIssues {
+            nodes {
+              id
+              title
+            }
+          }
+          linkedByIssues {
+            nodes {
+              id
+              title
+            }
+          }
+          components {
+            nodes {
+              id
+              name
+              repositoryURL
+              projects {
+                nodes {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+      linkedByIssues {
+        nodes {
+          id
+          title
+          isOpen
+          category
+          assignees {
+            nodes {
+              id
+            }
+          }
+          linksToIssues {
+            nodes {
+              id
+              title
+            }
+          }
+          linkedByIssues {
+            nodes {
+              id
+              title
+            }
+          }
+          components {
+            nodes {
+              id
+              name
+              repositoryURL
+              projects {
+                nodes {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+      labels {
+        nodes {
+          id
+          name
+          description
+          color
+        }
+      }
+      artifacts {
+        nodes {
+          id
+          uri
+          lineRangeStart
+          lineRangeEnd
+        }
+      }
+      assignees {
+        nodes {
+          id
+          displayName
+          username
+        }
+      }
+      components {
+        nodes {
+          id
+          name
+          projects {
+            nodes {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation linkIssues($sourceIssueId: ID!, $targetIssueId: ID!) {
+  linkIssue(input: { issue: $sourceIssueId, issueToLink: $targetIssueId }) {
+    clientMutationID
+  }
+}

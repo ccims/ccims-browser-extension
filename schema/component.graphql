@@ -1,0 +1,212 @@
+fragment SimpleIssue on Issue {
+  id
+  title
+  body
+  isOpen
+  category
+  artifacts {
+    nodes {
+      uri
+    }
+  }
+}
+
+fragment ComplexIssue on Issue {
+  id
+  title
+  body
+  isOpen
+  category
+  assignees {
+    nodes {
+      id
+    }
+  }
+  linksToIssues(first: 1) {
+    nodes {
+      id
+    }
+  }
+  linkedByIssues(first: 1) {
+    nodes {
+      id
+    }
+  }
+  artifacts {
+    nodes {
+      uri
+    }
+  }
+}
+
+query getComponentInternalSimple($id: ID!) {
+  node(id: $id) {
+    ... on Component {
+      name
+      description
+      repositoryURL
+      issues {
+        nodes {
+          ...SimpleIssue
+        }
+      }
+      projects {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+}
+
+query getComponentInternalComplex($id: ID!) {
+  node(id: $id) {
+    ... on Component {
+      name
+      description
+      repositoryURL
+      issues {
+        nodes {
+          ...ComplexIssue
+        }
+      }
+      projects {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+}
+
+query refetchIssueSimple($id: ID!) {
+  node(id: $id) {
+    ... on Issue {
+      ...SimpleIssue
+    }
+  }
+}
+
+query refetchIssueComplex($id: ID!) {
+  node(id: $id) {
+    ... on Issue {
+      ...ComplexIssue
+    }
+  }
+}
+
+query searchComponentsInternal(
+  $name: String
+  $description: String
+  $maxAmount: Int!
+) {
+  components(
+    first: $maxAmount
+    filterBy: { name: $name, description: $description }
+  ) {
+    nodes {
+      id
+      name
+      description
+    }
+  }
+}
+
+query artifactsForFileInternal($component: ID!, $artifactFilter: String!) {
+  node(id: $component) {
+    ... on Component {
+      artifacts(filterBy: { uri: $artifactFilter }) {
+        nodes {
+          id
+          uri
+          lineRangeStart
+          lineRangeEnd
+          issues {
+            nodes {
+              id
+              isOpen
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation createComponent(
+  $name: String!
+  $description: String
+  $repositoryURL: String
+  $projects: [ID!]
+) {
+  createComponent(
+    input: {
+      name: $name
+      description: $description
+      repositoryURL: $repositoryURL
+      projects: $projects
+    }
+  ) {
+    component {
+      id
+    }
+  }
+}
+
+query getComponentIssues($id: ID!) {
+  node(id: $id) {
+    ... on Component {
+      id
+      issues {
+        nodes {
+          id
+          title
+        }
+      }
+    }
+  }
+}
+
+query getComponentInformation($id: ID!) {
+  node(id: $id) {
+    ... on Component {
+      id
+      issues {
+        nodes {
+          id
+          title
+        }
+      }
+      projects {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+
+query getComponentId($name: String!) {
+  components(filterBy: { name: $name }) {
+    nodes {
+      id
+    }
+  }
+}
+
+query getAllComponents {
+  components {
+    nodes {
+      repositoryURL
+      name
+      id
+    }
+  }
+}
+
+mutation addComponentToProject($component: ID!, $project: ID!) {
+  addComponentToProject(input: { component: $component, project: $project }) {
+    clientMutationID
+  }
+}

@@ -1,0 +1,30 @@
+query getProjects {
+  projects {
+    nodes {
+      name
+      id
+      description
+      components {
+        nodes {
+          name
+          id
+          issues {
+            nodes {
+              id
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation createProject($name: String!, $description: String) {
+  createProject(input: { name: $name, description: $description }) {
+    project {
+      id
+      name
+    }
+  }
+}
