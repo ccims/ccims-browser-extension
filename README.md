@@ -1,6 +1,6 @@
 # Gropius Browser Extension
 
-## Running the extension
+## Running the browser extension in Google Chrome
 
 - run `npm run serve` to run a livereload server while testing the browser extension or run `npm run build` to build extension
 - Open Google Chrome browser and navigate to `chrome://extensions`
