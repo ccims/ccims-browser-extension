@@ -181,6 +181,7 @@ query getComponentInformation($id: ID!) {
         nodes {
           id
           name
+          description
         }
       }
     }

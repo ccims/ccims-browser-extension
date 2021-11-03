@@ -171,7 +171,8 @@ export default class SelectProject extends Vue {
   cursor: pointer;
 }
 .dropdown-item:hover {
-  background: #edf2f7;
+  background: #eaeef2;
+  color: black;
 }
 .center-text {
   display: flex;

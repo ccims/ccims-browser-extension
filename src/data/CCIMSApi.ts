@@ -13,6 +13,7 @@ interface ComponentInformation {
     nodes: {
       id: string;
       name: string;
+      description: string;
     }[];
   };
 }
