@@ -118,6 +118,7 @@ export default class SelectComponent extends SelectComponentProps {
   cursor: pointer;
 }
 .dropdown-item:hover {
-  background: #edf2f7;
+  background: #eaeef2;
+  color: black;
 }
 </style>

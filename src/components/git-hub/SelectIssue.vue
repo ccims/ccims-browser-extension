@@ -175,6 +175,7 @@ export default class SelectIssue extends SelectIssuePropos {
   cursor: pointer;
 }
 .dropdown-item:hover {
-  background: #edf2f7;
+  background-color: #eaeef2;
+  color: black;
 }
 </style>
