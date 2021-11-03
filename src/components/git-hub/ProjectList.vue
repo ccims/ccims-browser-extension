@@ -59,7 +59,7 @@ export default class ProjectList extends Vue {
   }
 
   /**
-   * If browser storage changes this method is called and fetches user projects and linked issues.
+   * If browser storage changes this method is called and fetches user projects.
    */
   public logStorageChange(): void {
     this.fetchUserProjects();

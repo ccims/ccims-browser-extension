@@ -3,8 +3,7 @@ import RelatedIssues from "@/components/git-hub/RelatedIssueList.vue";
 import ActiveProjects from "@/components/git-hub/ActiveProjects.vue";
 import ProjectList from "@/components/git-hub/ProjectList.vue";
 import { getCCIMSApi } from "@/data/CCIMSApi";
-import { Project, Issue } from "@/generated/graphql";
-import { createNamespacedHelpers } from "vuex";
+import { Issue } from "@/generated/graphql";
 
 declare global {
   interface Window {
@@ -25,8 +24,8 @@ addActiveProjects();
 addProjectList();
 
 /**
- * Adds the project list to the side bar of GitHub iff div-element with class "BorderGrid BorderGrid--spacious" exists
- * The project list contains all projects in which the current repository is a component in
+ * Adds the project list to the side bar of GitHub iff div-element with class "BorderGrid BorderGrid--spacious" exists.
+ * The project list contains all projects in which the current component is included.
  */
 function addProjectList(): void {
   if (document.getElementById("project-list-container") === null) {
@@ -45,7 +44,7 @@ function addProjectList(): void {
 }
 
 /**
- * Adds a button to the top navigation bar of GitHub iff the div-element with class "file-navigation" exists
+ * Adds a list of related issue to the sidebar of GitHub's issue page iff the div-element with id "partial-discussion-sidebar" exists.
  */
 function addRelIssueList(): void {
   if (document.getElementById("related-issue-list") === null) {
@@ -64,28 +63,7 @@ function addRelIssueList(): void {
 }
 
 /**
- * All Gropius projects in which the current component is included are set as active projects.
- * First the user projects are fetched from the api and then they are stored in browser.storage.local.
- */
-async function setActiveProjects(): Promise<void> {
-  if (
-    (await browser.storage.local.get("project")) !== undefined &&
-    (await browser.storage.local.get("project")) !== null
-  ) {
-    const activeComponent = await browser.storage.local.get("component");
-    if (
-      activeComponent.component !== undefined &&
-      activeComponent.component.id !== ""
-    ) {
-      browser.storage.local.set({
-        project: activeComponent.component.projects,
-      });
-    }
-  }
-}
-
-/**
- *
+ * Adds a filter of the active Gropius projects to the sidebar of GitHub's issue page iff the div-element with id "partial-discussion-sidebar" exists.
  */
 function addActiveProjects() {
   if (document.getElementById("active-projects") === null) {
@@ -105,7 +83,28 @@ function addActiveProjects() {
 }
 
 /**
- * This method initializes the browser storage attribute componentName
+ * All Gropius projects in which the current component is included are set as active projects.
+ */
+async function setActiveProjects(): Promise<void> {
+  if (
+    (await browser.storage.local.get("project")) !== undefined &&
+    (await browser.storage.local.get("project")) !== null
+  ) {
+    const activeComponent = await browser.storage.local.get("component");
+    if (
+      activeComponent.component !== undefined &&
+      activeComponent.component.id !== ""
+    ) {
+      browser.storage.local.set({
+        project: activeComponent.component.projects,
+      });
+    }
+  }
+}
+
+/**
+ * This method initializes the browser storage attribute issue.
+ * If the current issue the user is visting at the moment exists in Gropius back-end it is stored in browser storage.
  */
 async function setActiveIssue() {
   const issueTitle = getIssueTitle();
@@ -147,7 +146,7 @@ function resetActiveIssue(): void {
 }
 
 /**
- * Returns the title of the current issue
+ * @returns the title of the current issue
  */
 function getIssueTitle(): string {
   const element = document.querySelector(".js-issue-title.markdown-title");
@@ -170,8 +169,8 @@ async function setActiveComponent() {
   if (componentId !== "" && componentId !== undefined) {
     const api = await getCCIMSApi();
     const info = await api?.getComponentInformationBasedOnId(componentId);
-    const issues = info.issues?.nodes;
-    const projects = info.projects?.nodes;
+    const issues = info!.issues?.nodes;
+    const projects = info!.projects?.nodes;
     browser.storage.local.set({
       component: {
         name: componentName,
@@ -198,6 +197,7 @@ async function setActiveComponent() {
 
 /**
  * Given a component name the id of the first component found with the same name is returned.
+ *
  * @param name the name of the component
  */
 async function getComponentId(name: string): Promise<string> {

@@ -1,4 +1,4 @@
-import { Issue, IssuePage } from "@/generated/graphql";
+import { Issue } from "@/generated/graphql";
 
 /**
  * This method returns the path of icon given a specific issue.
@@ -18,16 +18,11 @@ export function getIconForIssue(issueDetailed: Issue): string {
   }
 
   const relations = getIssueRelations(
-    issueDetailed.linkedByIssues as IssuePage,
-    issueDetailed.linksToIssues as IssuePage
+    issueDetailed.linkedByIssues!.nodes as Issue[],
+    issueDetailed.linksToIssues!.nodes as Issue[]
   );
 
-  const assignees = issueDetailed.assignees?.nodes ?? [];
-  if (assignees.length > 0) {
-    path = path + "/assigned";
-  } else {
-    path = path + "/normal";
-  }
+  path = path + "/normal";
 
   const fileName = category + closed + relations + ".svg";
   return path + "/" + fileName;
@@ -54,19 +49,18 @@ function getIssueCategory(category: string): string {
 /**
  * This method returns the appropriate substring for the path of the issue icon, which indicates which relations the issue has.
  *
+ * @param linkedByIssues
  * @returns substring of the icon path
  */
 function getIssueRelations(
-  linkedByIssues: IssuePage,
-  linksToIssues: IssuePage
+  linkedByIssues: Issue[],
+  linksToIssues: Issue[]
 ): string {
   let relations = "";
-  const linkedBy = linkedByIssues?.nodes as Issue[];
-  if (linkedBy.length > 0) {
+  if (linkedByIssues.length > 0) {
     relations = relations + "in";
   }
-  const linksTo = linksToIssues?.nodes as Issue[];
-  if (linksTo.length > 0) {
+  if (linksToIssues.length > 0) {
     relations = relations + "out";
   }
   return "-" + relations;

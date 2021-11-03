@@ -1,3 +1,4 @@
+<!-- Component for selecting a Gropius component -->
 <template>
   <div class="dropdown">
     <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
@@ -23,7 +24,7 @@
 </template>
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { Component as ProjectComponent, Maybe } from "@/generated/graphql";
+import { Component as GropiusComponent } from "@/generated/graphql";
 import { getCCIMSApi } from "@/data/CCIMSApi";
 
 const SelectComponentProps = Vue.extend({
@@ -36,35 +37,35 @@ const SelectComponentProps = Vue.extend({
 export default class SelectComponent extends SelectComponentProps {
   private inputValue = "";
   private componentListVisible = true;
-  private projectComponents:
-    | Maybe<
-        Maybe<{
-          __typename?: "Component" | undefined;
-          name: string;
-          id?: Maybe<string> | undefined;
-        }>[]
-      >
-    | undefined = [];
+  private projectComponents: GropiusComponent[] = [];
 
+  /**
+   * Called on created, initializes the components for the selected project (identified by projectId)
+   */
   async created(): Promise<void> {
     const api = await getCCIMSApi();
-    this.projectComponents = await api?.getComponentsForProject(this.projectId);
+    this.projectComponents =
+      (await api?.getComponentsForProject(this.projectId)) ?? [];
   }
 
   /**
-   * This method is needed for the suggestions when the user types a project name and
+   * This method checks for the given component if the typed string matches the name of the component.
    *
-   * It checks for the given project if the typed string matches the name of the project
+   * @param component the component to compare the
+   * @returns true if the typed string matches the name of the component, false if not
    */
-  public itemVisible(component: ProjectComponent): boolean {
+  public itemVisible(component: GropiusComponent): boolean {
     let currentName = component.name.toLowerCase();
     let currentInput = this.inputValue.toLowerCase();
     return currentName.includes(currentInput);
   }
 
   /**
-   * This method selects one of the user's projects based on the given projectId.
+   * This method selects a given component.
    * The choice gets emitted to the parent component.
+   *
+   * @param componentId id of the component to select
+   * @param componentName name of the component to select
    */
   public selectComponent(componentId: string, componentName: string): void {
     this.componentListVisible = false;

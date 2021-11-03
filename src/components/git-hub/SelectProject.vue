@@ -1,3 +1,4 @@
+<!-- Component for selecting or creating a project -->
 <template>
   <div v-if="!projectCreation" class="dropdown">
     <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
@@ -73,27 +74,37 @@ export default class SelectProject extends Vue {
   private projectCreation = false;
   private projectDescription = "";
 
+  /**
+   * Called on created, fetches the projects in which the current component is included.
+   */
   async created(): Promise<void> {
     this.fetchUserProjects();
   }
 
   /**
-   * All projects the current user is assigned to are fetched
+   * All projects the current component is included to are fetched.
    */
   async fetchUserProjects(): Promise<void> {
-    const api = await getCCIMSApi();
-    this.userProjects = (await api?.getUserProjects()) ?? [];
+    let activeComponent = await browser.storage.local.get("component");
+    if (
+      activeComponent.component !== undefined &&
+      activeComponent.component.id !== ""
+    ) {
+      this.userProjects = activeComponent.component.projects;
+    }
   }
 
   /**
-   * This method is needed for the suggestions when the user types a project name and
+   * This method checks for the given project if the typed string matches the name of the project.
    *
-   * It checks for the given project if the typed string matches the name of the project
+   * @param project the project to compare the
+   * @returns true if the typed string matches the name of the project, false if not
    */
   public itemVisible(project: Project): boolean {
     let currentName = project.name.toLowerCase();
     let currentInput = this.inputValue.toLowerCase();
     if (currentName.includes(currentInput)) {
+      // no project should be shown twice
       if (!this.shownProjects?.includes(project)) {
         this.shownProjects.push(project);
       }
@@ -121,6 +132,7 @@ export default class SelectProject extends Vue {
 
   /**
    * New project is created with name as the current inputValue and description as the current projectDescription.
+   * The id and the name of the created project is emitted to the parent component.
    */
   async createProject(): Promise<void> {
     const api = await getCCIMSApi();

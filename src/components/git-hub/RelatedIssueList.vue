@@ -61,7 +61,20 @@
                 @click="decreaseStepNumber()"
               >
                 <span class="text-bold Link--primary lock-toggle-link">
-                  <img :src="getIconPath(issue)" />
+                  <svg
+                    aria-hidden="true"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    version="1.1"
+                    width="16"
+                    data-view-component="true"
+                    class="octicon octicon-arrow-left"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"
+                    ></path>
+                  </svg>
                 </span>
               </button>
               <span class="SelectMenu-title">{{ stepDescription }}</span>
@@ -265,20 +278,6 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   * Sets isGropiusComponent to true if the current respository is a Gropius component, false if not
-   */
-  async setIsGropiusComponent(): Promise<void> {
-    let activeComponent = await browser.storage.local.get("component");
-    if (
-      activeComponent.component !== undefined &&
-      activeComponent.component.id !== ""
-    ) {
-      this.isGropiusComponent = true;
-    }
-    this.isGropiusComponent = false;
-  }
-
-  /**
    * Get the description of the current step when a related issue is added.
    */
   get stepDescription(): string {
@@ -291,6 +290,21 @@ export default class RelatedIssueList extends Vue {
         return "Select or Create an Issue";
       default:
         return "Specify the Issue Relationship";
+    }
+  }
+
+  /**
+   * Sets isGropiusComponent to true if the current respository is a Gropius component, false if not
+   */
+  async setIsGropiusComponent(): Promise<void> {
+    let activeComponent = await browser.storage.local.get("component");
+    if (
+      activeComponent.component !== undefined &&
+      activeComponent.component.id !== ""
+    ) {
+      this.isGropiusComponent = true;
+    } else {
+      this.isGropiusComponent = false;
     }
   }
 
@@ -390,6 +404,9 @@ export default class RelatedIssueList extends Vue {
 
   /**
    * Checks if the issue that is to be added to one of the related issues list does already exist.
+   *
+   * @param id of the issue
+   * @param type issue links to or linked by the current issue
    * @returns true if it exists, false otherwise.
    */
   issueExist(id: string, type: string): boolean {
@@ -423,14 +440,18 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   * This method is called when a project in component "select-project" is selected.
-   * Now components of the project with the given projectId are shown.
+   * This method is called when a project in component "select-component" is selected.
+   * Now existing issues of the component with the given componentId are shown.
    */
   public setActiveComponent(componentId: string): void {
     this.activeComponentId = componentId;
     this.stepNumber++;
   }
 
+  /**
+   * This method is called when an issue in component "select-issue" is selected.
+   * Now the issue relationship is to be specified.
+   */
   public setActiveIssue(issueId: string, issueTitle: string): void {
     this.selectedIssueId = issueId;
     this.selectedIssueName = issueTitle;
@@ -445,11 +466,13 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   * This method filters the current issue of all issues in the current project and initilizes currentIssueId
+   * This method initializes the current issue.
+   * It checks whether the issue is already stored in the Gropius back-end by checking the current issue in browser storage.
+   * The issue title is initialized and if issue already exists in Gropius back-end also the current issue id is initialized.
    */
   async setCurrentIssueDetails(): Promise<void> {
     const issue = await browser.storage.local.get("issue");
-    if (issue !== undefined) {
+    if (issue !== undefined && issue.issue.id !== "") {
       this.currentIssueId = issue.issue.id;
       this.currentIssueTitle = issue.issue.title;
       if (this.currentIssueId !== "") {
@@ -457,11 +480,21 @@ export default class RelatedIssueList extends Vue {
         await this.initRelatedIssuesLinksTo();
         this.initIssuePopup();
       }
+    } else {
+      this.currentIssueTitle = this.getIssueTitle();
     }
   }
 
   /**
-   * If browser storage changes this method is called and fetches user projects and linked issues
+   * @returns the title of the current issue
+   */
+  public getIssueTitle(): string {
+    const element = document.querySelector(".js-issue-title.markdown-title");
+    return element?.innerHTML ?? "";
+  }
+
+  /**
+   * If browser storage changes this method is called and fetches user projects, sets current issue details and linked issues
    */
   public logStorageChange(): void {
     this.setCurrentIssueDetails();
@@ -477,6 +510,11 @@ export default class RelatedIssueList extends Vue {
   /**
    * Style attribut is created by this method.
    * The position of the issue popup with a given index is set according to position of the issue element.
+   * This method returns the left value for the style.
+   *
+   * @param index index of the issue to show the issue popup
+   * @param name name of the issue
+   * @param className either 'links-to' or 'linked-by'
    */
   public getLeft(index: number, name: string, className: string): number {
     const idName = name + className;
@@ -489,6 +527,11 @@ export default class RelatedIssueList extends Vue {
   /**
    * Style attribut is created by this method.
    * The position of the issue popup with a given index is set according to position of the issue element.
+   * This method returns the left value for the style.
+   *
+   * @param index index of the issue to show the issue popup
+   * @param name name of the issue
+   * @param className either 'links-to' or 'linked-by'
    */
   public getTop(index: number, name: string, className: string): number {
     const idName = name + className;
@@ -498,13 +541,19 @@ export default class RelatedIssueList extends Vue {
     return top;
   }
 
-  public getIconPath(issue: Issue) {
+  /**
+   * @param issue the icon path should be returned
+   * @returns path of the icon for the given issue
+   */
+  public getIconPath(issue: Issue): string {
     return getIconForIssue(issue);
   }
 
   /**
    * This method sets the visible property of the issue with given id to true.
    * Thus, the issue popup with information of the issue is shown.
+   *
+   * @param id id of the issue
    */
   public showIssuePopup(id: string): void {
     const issue = this.issuePopup.issues.filter((item) => item?.id === id)[0];
@@ -516,6 +565,8 @@ export default class RelatedIssueList extends Vue {
   /**
    * This method sets the visible property of the issue with given id to false.
    * Thus, the issue popup with information of the issue is hidden.
+   *
+   * @param id id of the issue
    */
   public hideIssuePopup(id: string): void {
     const issue = this.issuePopup.issues.filter((item) => item?.id === id)[0];
@@ -525,8 +576,10 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   * This method sets the visible property of the issue with given id to false.
-   * Thus, the issue popup with information of the issue is hidden.
+   * This method returns if the issue detail popup is visible for the given issue.
+   *
+   * @param id of the issue
+   * @returns true if the popup is visible, false if not
    */
   public isIssuePopupVisible(id: string): boolean {
     const issue = this.issuePopup.issues.filter((item) => item?.id === id)[0];
@@ -537,7 +590,10 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   * This method returns the names of all components the issue is assigned to.
+   * This method returns the names of all components a given issue is assigned to.
+   *
+   * @param issue given issue
+   * @returns all components a given issue is assigned to
    */
   public getIssueComponents(issue: Issue): any[] {
     let components: any[] = [];
@@ -561,7 +617,7 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   *
+   * This method closes all the details on the current page.
    */
   public closeDetails(): void {
     this.setCurrentIssueDetails();
@@ -573,7 +629,10 @@ export default class RelatedIssueList extends Vue {
   }
 
   /**
-   * This method returns a string consisting of all active projects the issue is assigned to
+   * This method returns a string consisting of all components the issue is assigned to
+   *
+   * @param issue given issue
+   * @returns string of components separated by a comma
    */
   getComponentNames(issue: Issue): string {
     let componentNames = "Component(s): ";

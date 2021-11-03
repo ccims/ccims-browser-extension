@@ -77,6 +77,11 @@ export default class IssueRelationSpecification extends IssueRelationSpecificati
       await browser.storage.local.set({
         issue: { id: this.sourceId, title: this.sourceName },
       });
+      console.log(
+        "component, issue",
+        await browser.storage.local.get("component"),
+        await browser.storage.local.get("component")
+      );
     }
   }
 

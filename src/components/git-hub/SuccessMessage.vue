@@ -1,3 +1,4 @@
+<!-- Component to show any message, used as succes component -->
 <template>
   <div>
     <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
@@ -15,7 +16,5 @@ const SuccessMessageProps = Vue.extend({
 });
 
 @Component
-export default class SuccessMessage extends SuccessMessageProps {
-  
-}
+export default class SuccessMessage extends SuccessMessageProps {}
 </script>

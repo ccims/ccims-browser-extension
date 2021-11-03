@@ -190,8 +190,9 @@ export default class ActiveProjects extends Vue {
       activeComponent.component.id !== ""
     ) {
       this.isGropiusComponent = true;
+    } else {
+      this.isGropiusComponent = false;
     }
-    this.isGropiusComponent = false;
   }
 
   /**

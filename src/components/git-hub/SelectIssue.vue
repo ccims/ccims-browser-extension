@@ -1,3 +1,4 @@
+<!-- Component for selecting and creating an issue -->
 <template>
   <div v-if="!issueCreation" class="dropdown">
     <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
@@ -25,7 +26,6 @@
       >
         {{ issue.title }}
       </div>
-      <!-- Hier noch ein "Kein Projekt mshowProjectListit solch einem Namen einfügen" -->
     </div>
   </div>
   <div v-else>
@@ -47,25 +47,6 @@
         placeholder="Body of the issue"
       />
     </div>
-    <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
-      <v-row justify="center">
-        <!-- <v-date-picker v-model="picker"></v-date-picker> -->
-      </v-row>
-    </div>
-    <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
-      <v-row justify="center">
-        <!-- <v-date-picker v-model="picker"></v-date-picker> -->
-      </v-row>
-    </div>
-    <!-- <div class="select-menu-text-filter hx_form-control-spinner-wrapper">
-      Estimated time
-      <input
-        v-model="estimatedTime"
-        class="form-control js-filterable-field"
-        type="number"
-        placeholder="Body of the issue"
-      />
-    </div> -->
     <button class="btn-primary btn mt-2 ml-2 mb-2 mr-2" @click="createIssue()">
       Create issue and specify relationship
     </button>
@@ -81,7 +62,6 @@ const SelectIssuePropos = Vue.extend({
     componentId: String,
   },
 });
-
 @Component
 export default class SelectIssue extends SelectIssuePropos {
   private inputValue = "";
@@ -90,6 +70,9 @@ export default class SelectIssue extends SelectIssuePropos {
   private issueCreation = false;
   private bodyCreatedIssue = "";
 
+  /**
+   * Called on created, initializes the issues that concern the selected component.
+   */
   async created(): Promise<void> {
     const api = await getCCIMSApi();
     this.componentIssues = await api!.getComponentIssuesBasedOnId(
@@ -98,9 +81,10 @@ export default class SelectIssue extends SelectIssuePropos {
   }
 
   /**
-   * This method is needed for the suggestions when the user types a project name and
+   * This method checks for the given issue if the typed string matches the name of the issue.
    *
-   * It checks for the given project if the typed string matches the name of the project
+   * @param issue the issue to compare the
+   * @returns true if the typed string matches the name of the issue, false if not
    */
   public itemVisible(issue: Issue): boolean {
     let currentName = issue.title.toLowerCase();
@@ -109,8 +93,11 @@ export default class SelectIssue extends SelectIssuePropos {
   }
 
   /**
-   * This method selects one of the user's projects based on the given projectId.
+   * This method selects a given issue.
    * The choice gets emitted to the parent component.
+   *
+   * @param issueId id of the issue to select
+   * @param issueName name of the issue to select
    */
   public selectIssue(issueId: string, issueTitle: string): void {
     this.issueListVisible = false;
@@ -126,7 +113,8 @@ export default class SelectIssue extends SelectIssuePropos {
   }
 
   /**
-   *
+   * Called when the user decides to create the issue.
+   * The id and the name of the created issue are emitted to parent component.
    */
   async createIssue(): Promise<void> {
     const api = await getCCIMSApi();

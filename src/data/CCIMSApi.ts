@@ -1,12 +1,21 @@
-import {
-  getSdk,
-  Sdk,
-  Project,
-  Maybe,
-  Issue,
-  Component,
-} from "@/generated/graphql";
+import { getSdk, Sdk, Project, Issue, Component } from "@/generated/graphql";
 import { GraphQLClient } from "graphql-request";
+
+interface ComponentInformation {
+  id: string;
+  issues: {
+    nodes: {
+      id: string;
+      title: string;
+    }[];
+  };
+  projects: {
+    nodes: {
+      id: string;
+      name: string;
+    }[];
+  };
+}
 
 /**
  * The type of the CCIMSApi used for all requests
@@ -14,9 +23,9 @@ import { GraphQLClient } from "graphql-request";
 function getSdkWrapper(sdk: Sdk) {
   return {
     ...sdk,
+
     /**
-     *
-     * @param componentId the id of the Component
+     * @returns all Gropius projects that can be found in 'http://localhost:8080/api'
      */
     async getUserProjects(): Promise<Project[]> {
       const projects = await this.getProjects();
@@ -24,7 +33,7 @@ function getSdkWrapper(sdk: Sdk) {
     },
 
     /**
-     *
+     * @returns all Gropius components that can be found in 'http://localhost:8080/api'
      */
     async getUserComponents(): Promise<Component[]> {
       const components = await this.getAllComponents();
@@ -32,9 +41,10 @@ function getSdkWrapper(sdk: Sdk) {
     },
 
     /**
+     * Given a specific issue, all issues the given issue is linked by are returned.
      *
-     * @param id
-     * @returns
+     * @param id of the given issue
+     * @returns list of issues the given issue is linked by
      */
     async getLinkedByIssues(id: string): Promise<Issue[]> {
       const issues = await this.getIssueData({ id });
@@ -43,11 +53,12 @@ function getSdkWrapper(sdk: Sdk) {
     },
 
     /**
+     * Given a specific issue, all issues the given issue links to are returned.
      *
-     * @param id
-     * @returns
+     * @param id of the given issue
+     * @returns list of issues the given issue links to
      */
-    async getLinkedToIssues(id: string): Promise<Maybe<Issue>[]> {
+    async getLinkedToIssues(id: string): Promise<Issue[]> {
       const issues = await this.getIssueData({ id });
       const linkedToIssues = (issues.node as Issue).linksToIssues;
       return linkedToIssues!.nodes as Issue[];
@@ -56,7 +67,7 @@ function getSdkWrapper(sdk: Sdk) {
     /**
      * This method returns the first component of the user based on the name of the component
      *
-     * @param name
+     * @param name of the given component
      */
     async getComponentIdName(name: string): Promise<string> {
       const componentPage = await this.getComponentId({ name });
@@ -67,8 +78,10 @@ function getSdkWrapper(sdk: Sdk) {
     },
 
     /**
-     * This method returns all components of the user based on the name of the component
+     * This method returns all issues for a given component.
+     *
      * @param id id of the component the issues should be returned
+     * @returns list of issues
      */
     async getComponentIssuesBasedOnId(id: string): Promise<Issue[]> {
       const nodes = await this.getComponentIssues({ id });
@@ -76,14 +89,17 @@ function getSdkWrapper(sdk: Sdk) {
     },
 
     /**
-     * This method fetches the issues and projects of a component with given id.
+     * This method returns detailed information on a given component.
+     * This includes id, issues and projects.
      *
-     * @param id of the component the information is fetched
-     * @returns projects and issues
+     * @param id of the given component
+     * @returns component detail
      */
-    async getComponentInformationBasedOnId(id: string): Promise<any> {
+    async getComponentInformationBasedOnId(
+      id: string
+    ): Promise<ComponentInformation> {
       const nodes = await this.getComponentInformation({ id });
-      const info = nodes.node;
+      const info = nodes.node as ComponentInformation;
       return info;
     },
 
@@ -102,23 +118,13 @@ function getSdkWrapper(sdk: Sdk) {
      * @param id project id
      * @returns array of components assigned to this project
      */
-    async getComponentsForProject(
-      id: string
-    ): Promise<
-      | Maybe<
-          Maybe<{
-            __typename?: "Component" | undefined;
-            name: string;
-            id?: Maybe<string> | undefined;
-          }>[]
-        >
-      | undefined
-    > {
-      const projects = await this.getProjects();
-      return (
-        projects?.projects?.nodes?.filter((project) => project?.id === id)[0]
-          ?.components?.nodes ?? undefined
-      );
+    async getComponentsForProject(id: string): Promise<Component[]> {
+      const projectReturn = await this.getProjects();
+      const project = projectReturn?.projects!.nodes!.filter(
+        (project) => project?.id === id
+      )[0];
+      const components = project?.components!.nodes;
+      return components as Component[];
     },
   };
 }
