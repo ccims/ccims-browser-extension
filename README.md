@@ -2,7 +2,6 @@
 
 ## Running the extension
 
-- Open this in VS Code
 - run `npm run serve` to run a livereload server while testing the browser extension or run `npm run build` to build extension
 - Open Google Chrome browser and navigate to `chrome://extensions`
 - enable the developer mode
