@@ -39,13 +39,13 @@ query getIssueData($id: ID!) {
               id
             }
           }
-          linksToIssues(first: 1) {
+          linksToIssues {
             nodes {
               id
               title
             }
           }
-          linkedByIssues(first: 1) {
+          linkedByIssues {
             nodes {
               id
               title
@@ -66,7 +66,7 @@ query getIssueData($id: ID!) {
           }
         }
       }
-      linkedByIssues(first: 1) {
+      linkedByIssues {
         nodes {
           id
           title
@@ -77,13 +77,13 @@ query getIssueData($id: ID!) {
               id
             }
           }
-          linksToIssues(first: 1) {
+          linksToIssues {
             nodes {
               id
               title
             }
           }
-          linkedByIssues(first: 1) {
+          linkedByIssues {
             nodes {
               id
               title

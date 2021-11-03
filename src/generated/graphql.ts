@@ -5166,13 +5166,13 @@ export const GetIssueDataDocument = gql`
               id
             }
           }
-          linksToIssues(first: 1) {
+          linksToIssues {
             nodes {
               id
               title
             }
           }
-          linkedByIssues(first: 1) {
+          linkedByIssues {
             nodes {
               id
               title
@@ -5193,7 +5193,7 @@ export const GetIssueDataDocument = gql`
           }
         }
       }
-      linkedByIssues(first: 1) {
+      linkedByIssues {
         nodes {
           id
           title
@@ -5204,13 +5204,13 @@ export const GetIssueDataDocument = gql`
               id
             }
           }
-          linksToIssues(first: 1) {
+          linksToIssues {
             nodes {
               id
               title
             }
           }
-          linkedByIssues(first: 1) {
+          linkedByIssues {
             nodes {
               id
               title

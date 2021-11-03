@@ -104,7 +104,10 @@ function getSdkWrapper(sdk: Sdk) {
     },
 
     /**
+     * This method adds an existing component to an existing Gropius project.
      *
+     * @param component id of the component to be added
+     * @param project id of the project the component is to be added
      */
     async addExistingComponentToProject(
       component: string,
@@ -115,6 +118,7 @@ function getSdkWrapper(sdk: Sdk) {
 
     /**
      * Based on the given project id all components assigned to this project are returned
+     *
      * @param id project id
      * @returns array of components assigned to this project
      */
