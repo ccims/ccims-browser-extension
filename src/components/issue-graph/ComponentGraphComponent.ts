@@ -87,10 +87,10 @@ export default class ComponentGraphComponent extends Vue {
   graphDataChanged(): void {
     if (this.graphData) {
       this.initGraph();
-      console.log(this.savedPositions);
-      this.layoutGraph();
-      console.log(this.savedPositions);
       this.drawGraph();
+      this.layoutGraph();
+      this.drawGraph();
+      this.fitGraphInView();
     }
   }
 
@@ -744,21 +744,21 @@ export default class ComponentGraphComponent extends Vue {
    */
   layoutGraph(): void {
     const nodes = new Map<string | number, LayoutNode>();
-
     for (const node of this.graph.nodeList) {
       if (node.type === issueGraphNodes.NodeType.Component || node.type === issueGraphNodes.NodeType.Interface) {
         nodes.set(node.id, new LayoutNode(node.id, node.x, node.y, node.type));
       }
     }
-
     for (const edge of this.graph.edgeList) {
       if (nodes.has(edge.source) && nodes.has(edge.target)) {
         nodes.get(edge.source).connectTo(nodes.get(edge.target));
         nodes.get(edge.target).connectTo(nodes.get(edge.source));
       }
     }
-
-    const nodeList = Array.from(nodes.values());
+    const nodeList: LayoutNode[] = []
+    for (const node of nodes.values()) {
+      nodeList.push(node)
+    }
     doGraphLayout(nodeList);
 
     for (const node of nodeList) {

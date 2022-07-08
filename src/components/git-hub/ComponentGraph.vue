@@ -76,8 +76,6 @@ export default class GraphComponent extends Vue {
     async onTitleClick(): Promise<void> {
         this.isExpanded = !this.isExpanded;
         if (this.isExpanded) {
-            await this.$nextTick();
-            await new Promise(r => setTimeout(r, 2000));
             this.graphData = this.tempGraphData;
         }
     }
