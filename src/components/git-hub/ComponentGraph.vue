@@ -17,7 +17,7 @@
                 </h2>
             </div>
             <div class="graph-wrapper">
-                <ComponentGraphComponent :graphData="graphData"/>
+                <ComponentGraphComponent :graphData="graphData" :highlightedComponent="highlightedComponent"/>
             </div>
         </div>
     </div>
@@ -38,6 +38,7 @@ export default class GraphComponent extends Vue {
     isExpanded = false
     graphData: GraphData | null = null;
     tempGraphData: GraphData | null = null;
+    highlightedComponent: string | null = null
 
     @Prop({ default: false })
     issueMode!: boolean
@@ -59,6 +60,7 @@ export default class GraphComponent extends Vue {
         storageProjects.project.forEach((project: Project) =>
         activeProjects.push(project.id as string));
         const projectId = activeProjects[0]
+        this.highlightedComponent = (await browser.storage.local.get("component")).component.id;
         if (!projectId) {
             return;
         }
@@ -67,10 +69,9 @@ export default class GraphComponent extends Vue {
             if (!issueId) {
                 return;
             }
-            const api = await getCCIMSApi();
-            //TODO
-            this.tempGraphData = GraphDataFactory.graphDataFromGQL(await api.getIssueGraphData(projectId));
         }
+        const api = await getCCIMSApi();
+        this.tempGraphData = GraphDataFactory.graphDataFromGQL(await api.getIssueGraphData(projectId));
     }
 
     async onTitleClick(): Promise<void> {

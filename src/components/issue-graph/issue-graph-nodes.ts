@@ -51,13 +51,14 @@ interface ComponentNode extends IssueNode {
  * @param component The component data
  * @param position The initial position, nullable
  */
-function createComponentNode(component: GraphComponent, position?: Position): ComponentNode {
+function createComponentNode(component: GraphComponent, position?: Position, highlighted?: boolean): ComponentNode {
   return {
     ...(position || zeroPosition),
     id: component.id,
     title: component.name,
     type: NodeType.Component,
-    data: component
+    data: component,
+    highlighted: highlighted
   };
 }
 

@@ -18,7 +18,11 @@ export class IssueGraphClassSettersService {
   manageClassSetters(graph: GraphEditor): void {
     // node class setter
     const nodeClassSetter = (className: string, node: Node) => {
-      return className === node.type;
+      if (className === "highlighted") {
+        return node.highlighted ?? false;
+      } else {
+        return className === node.type;
+      }
     };
 
     // applies noce class setter

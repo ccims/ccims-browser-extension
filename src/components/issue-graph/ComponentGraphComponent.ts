@@ -40,6 +40,9 @@ export default class ComponentGraphComponent extends Vue {
   @Prop()
   public graphData: GraphData;
 
+  @Prop({ default: null })
+  public highlightedComponent!: string | null
+
   networkGraphHtml = networkGraphHtml
 
   currentVisibleArea: Rect = {x: 0, y: 0, width: 1, height: 1};
@@ -133,135 +136,6 @@ export default class ComponentGraphComponent extends Vue {
 
     return JSON.parse(data);
   }
-
-  /**
-   * Method gets triggered after an edge gets dragged
-   * and its target is changed:
-   * ex. consumer edge gets moved away from the provider edge.
-   * @param edge Edge that is handled.
-   * @param sourceNode Source of the handled edge.
-   * @param targetNode Target of the handled edge.
-   * @returns Edge that is handled.
-   */
-  private onDraggedEdgeTargetChanged = (edge: DraggedEdge, sourceNode: Node, targetNode: Node): DraggedEdge => {
-    // case: edge originates from a component
-    if (sourceNode.type === issueGraphNodes.NodeType.Component) {
-      // case: target of edge is an interface
-      // => handles edge as of type consumer
-      if (targetNode?.type === issueGraphNodes.NodeType.Interface) {
-        // updates edge properties (default drag handle)
-        edge.type = issueGraphNodes.NodeType.InterfaceConsumer;
-        delete edge.dragHandles;
-
-        // updates marker at the end of the edge
-        edge.markerEnd = {
-          template: 'interface-connector',
-          relativeRotation: 0
-        };
-      }
-      // case: target of edge is not an interface (aka. null)
-      // => handles edge as of type provider
-      else {
-        // updates edge properties (no drag handles)
-        edge.type = issueGraphNodes.NodeType.Interface;
-        edge.dragHandles = [];
-
-        // updates marker at the end of the edge
-        // ? delete edge.markerEnd; ?
-        edge.markerEnd = {
-          template: 'interface-connector-initial',
-          relativeRotation: 0,
-          absoluteRotation: 0
-        };
-      }
-    }
-
-    return edge;
-  };
-
-  /**
-   * Method gets triggered after an edge gets added.
-   * @param event Event that is handled.
-   */
-  private onEdgeAdd = (event: CustomEvent): void => {
-    const edge: Edge = event.detail.edge;
-
-    // case: source of event is the API
-    if (event.detail.eventSource === 'API') {
-      return;
-    }
-
-    // case: edge of type interface consumer
-    if (edge.type === issueGraphNodes.NodeType.InterfaceConsumer) {
-      // cancels edge creation
-      event.preventDefault();
-
-      // updates the graph via the API
-      const sourceNode = this.graph.getNode(edge.source);
-      const targetNode = this.graph.getNode(edge.target);
-
-      // case: edge has source and target
-      // => adds edge of type interface provider
-      if (sourceNode != null && targetNode != null) {
-        //TODO
-        //# this.gs.addConsumedInterface(sourceNode.id.toString(), targetNode.id.toString()).subscribe(() => this.reload$.next(null));
-      }
-    }
-  };
-
-  /**
-   * Method gets triggered after an edge gets dropped.
-   * @param event Event that is handled.
-   */
-  private onEdgeDrop = (event: CustomEvent): void => {
-    const edge: DraggedEdge = event.detail.edge;
-
-    // case: source of event is the API
-    if (event.detail.eventSource === 'API') {
-      return;
-    }
-
-    // case: edge created from an existing edge
-    if (edge.createdFrom != null) {
-      return;
-    }
-
-    // case: edge of type interface
-    // => opens the interface creation dialog
-    if (edge.type === issueGraphNodes.NodeType.Interface) {
-      //# this.addInterfaceToComponent(event.detail.sourceNode.id, event.detail.dropPosition);
-    }
-  };
-
-  /**
-   * Method gets triggered after an edge gets removed.
-   * @param event Event that is handled.
-   */
-  private onEdgeRemove = (event: CustomEvent): void => {
-    const edge: Edge = event.detail.edge;
-
-    // case: source of event is the API
-    if (event.detail.eventSource === 'API') {
-      return;
-    }
-
-    // case: edge of type interface consumer
-    if (edge.type === issueGraphNodes.NodeType.InterfaceConsumer) {
-      // cancels edge deletion
-      event.preventDefault();
-
-      // updates the graph via the API
-      const sourceNode = this.graph.getNode(edge.source);
-      const targetNode = this.graph.getNode(edge.target);
-
-      // case: edge has source and target
-      // => removes edge of type interface provider
-      if (sourceNode != null && targetNode != null) {
-        // maybe necessary in future
-        //# this.gs.removeConsumedInterface(sourceNode.id.toString(), targetNode.id.toString()).subscribe(() => this.reload$.next(null));
-      }
-    }
-  };
 
   /**
    * Adds event listeners to a given GraphEditor instance.
@@ -358,28 +232,6 @@ export default class ComponentGraphComponent extends Vue {
   };
 
   /**
-   * Sets the context menu type.
-   * @param node Node that is handled.
-   */
-  /*#
-  private contextMenuTypeForNodeType(node: Node): NodeDetailsType {
-    // case: node of type Component
-    // => sets the context menu type as Component
-    if (node.type === issueGraphNodes.NodeType.Component) {
-      return NodeDetailsType.Component;
-    }
-
-    // case: node of type Interface
-    // => sets the context menu type as Interface
-    if (node.type === issueGraphNodes.NodeType.Interface) {
-      return NodeDetailsType.Interface;
-    }
-
-    return null;
-  }
-  #*/
-
-  /**
    * Handles the case in which an issue folder is clicked.
    * Determines the number of issues in the issue folder
    * and opens the corresponding issue page.
@@ -448,20 +300,6 @@ export default class ComponentGraphComponent extends Vue {
   }
 
   /**
-   * Extracts the id of an issue in a given issue list.
-   * @param issueList Ids of the issues that are handled.
-   * @param category Category of issues that are handled.
-   * @returns Id of the first issue (in the issue list) with matching category.
-   */
-  private extractIssueId(issueList, category: string): string {
-    for (const issue of issueList) {
-      if (issue.category === category) {
-        return issue.id;
-      }
-    }
-  }
-
-  /**
    * Handles the case in which the clicked issue folder contains many issues.
    * @param rootNode Root node that is handled.
    */
@@ -502,7 +340,7 @@ export default class ComponentGraphComponent extends Vue {
 
     // create nodes corresponding to the components and interfaces of the project
     const componentNodes = Array.from(this.graphData.components.values()).map((component) =>
-      issueGraphNodes.createComponentNode(component, this.findIdealComponentPosition(component.id, boundingBox))
+      issueGraphNodes.createComponentNode(component, this.findIdealComponentPosition(component.id, boundingBox), component.id != null && component.id == this.highlightedComponent)
     );
     const interfaceNodes = Array.from(this.graphData.interfaces.values()).map((intrface) =>
       issueGraphNodes.createInterfaceNode(intrface, this.savedPositions.nodes[intrface.id])
