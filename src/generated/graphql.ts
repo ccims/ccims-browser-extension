@@ -4883,6 +4883,13 @@ export type AddComponentToProjectMutationVariables = Exact<{
 
 export type AddComponentToProjectMutation = { __typename?: 'Mutation', addComponentToProject?: Maybe<{ __typename?: 'AddComponentToProjectPayload', clientMutationID?: Maybe<string> }> };
 
+export type GetIssueGraphDataQueryVariables = Exact<{
+  projectId: Scalars['ID'];
+}>;
+
+
+export type GetIssueGraphDataQuery = { __typename?: 'Query', node?: Maybe<{ __typename?: 'AddedArtifactEvent' } | { __typename?: 'AddedNonFunctionalConstraintEvent' } | { __typename?: 'AddedToComponentEvent' } | { __typename?: 'AddedToLocationEvent' } | { __typename?: 'Artifact' } | { __typename?: 'AssignedEvent' } | { __typename?: 'CCIMSUser' } | { __typename?: 'CategoryChangedEvent' } | { __typename?: 'ClosedEvent' } | { __typename?: 'Component' } | { __typename?: 'ComponentInterface' } | { __typename?: 'DeletedIssueComment' } | { __typename?: 'DueDateChangedEvent' } | { __typename?: 'EstimatedTimeChangedEvent' } | { __typename?: 'IMS' } | { __typename?: 'IMSComponent' } | { __typename?: 'IMSUser' } | { __typename?: 'Issue' } | { __typename?: 'IssueComment' } | { __typename?: 'Label' } | { __typename?: 'LabelledEvent' } | { __typename?: 'LinkEvent' } | { __typename?: 'MarkedAsDuplicateEvent' } | { __typename?: 'NonFunctionalConstraint' } | { __typename?: 'PinnedEvent' } | { __typename?: 'PriorityChangedEvent' } | { __typename?: 'Project', components?: Maybe<{ __typename?: 'ComponentPage', nodes?: Maybe<Array<Maybe<{ __typename?: 'Component', name: string, id?: Maybe<string>, bugs?: Maybe<{ __typename?: 'IssuePage', totalCount: number }>, featureRequests?: Maybe<{ __typename?: 'IssuePage', totalCount: number }>, unclassified?: Maybe<{ __typename?: 'IssuePage', totalCount: number }> }>>> }>, interfaces?: Maybe<{ __typename?: 'ComponentInterfacePage', nodes?: Maybe<Array<Maybe<{ __typename?: 'ComponentInterface', id?: Maybe<string>, name: string, component?: Maybe<{ __typename?: 'Component', id?: Maybe<string> }>, bugs?: Maybe<{ __typename?: 'IssuePage', totalCount: number }>, featureRequests?: Maybe<{ __typename?: 'IssuePage', totalCount: number }>, unclassified?: Maybe<{ __typename?: 'IssuePage', totalCount: number }>, consumedBy?: Maybe<{ __typename?: 'ComponentPage', nodes?: Maybe<Array<Maybe<{ __typename?: 'Component', id?: Maybe<string> }>>> }> }>>> }>, linkingIssues?: Maybe<{ __typename?: 'IssuePage', nodes?: Maybe<Array<Maybe<{ __typename?: 'Issue', id?: Maybe<string>, category: IssueCategory, locations?: Maybe<{ __typename?: 'IssueLocationPage', nodes?: Maybe<Array<Maybe<{ __typename?: 'Component', id?: Maybe<string> } | { __typename?: 'ComponentInterface', id?: Maybe<string> }>>> }>, linksToIssues?: Maybe<{ __typename?: 'IssuePage', nodes?: Maybe<Array<Maybe<{ __typename?: 'Issue', id?: Maybe<string>, category: IssueCategory, locations?: Maybe<{ __typename?: 'IssueLocationPage', nodes?: Maybe<Array<Maybe<{ __typename?: 'Component', id?: Maybe<string> } | { __typename?: 'ComponentInterface', id?: Maybe<string> }>>> }> }>>> }> }>>> }> } | { __typename?: 'ReactionGroup' } | { __typename?: 'ReferencedByIssueEvent' } | { __typename?: 'ReferencedByOtherEvent' } | { __typename?: 'RemovedArtifactEvent' } | { __typename?: 'RemovedFromComponentEvent' } | { __typename?: 'RemovedFromLocationEvent' } | { __typename?: 'RemovedNonFunctionalConstraintEvent' } | { __typename?: 'RenamedTitleEvent' } | { __typename?: 'ReopenedEvent' } | { __typename?: 'StartDateChangedEvent' } | { __typename?: 'UnassignedEvent' } | { __typename?: 'UnlabelledEvent' } | { __typename?: 'UnlinkEvent' } | { __typename?: 'UnmarkedAsDuplicateEvent' } | { __typename?: 'UnpinnedEvent' } | { __typename?: 'WasLinkedEvent' } | { __typename?: 'WasUnlinkedEvent' }> };
+
 export type CreateIssueMutationVariables = Exact<{
   title: Scalars['String'];
   body?: Maybe<Scalars['String']>;
@@ -5136,6 +5143,74 @@ export const AddComponentToProjectDocument = gql`
   }
 }
     `;
+export const GetIssueGraphDataDocument = gql`
+    query getIssueGraphData($projectId: ID!) {
+  node(id: $projectId) {
+    ... on Project {
+      components {
+        nodes {
+          name
+          id
+          bugs: issuesOnLocation(filterBy: {category: BUG}) {
+            totalCount
+          }
+          featureRequests: issuesOnLocation(filterBy: {category: FEATURE_REQUEST}) {
+            totalCount
+          }
+          unclassified: issuesOnLocation(filterBy: {category: UNCLASSIFIED}) {
+            totalCount
+          }
+        }
+      }
+      interfaces {
+        nodes {
+          id
+          name
+          component {
+            id
+          }
+          bugs: issuesOnLocation(filterBy: {category: BUG}) {
+            totalCount
+          }
+          featureRequests: issuesOnLocation(filterBy: {category: FEATURE_REQUEST}) {
+            totalCount
+          }
+          unclassified: issuesOnLocation(filterBy: {category: UNCLASSIFIED}) {
+            totalCount
+          }
+          consumedBy {
+            nodes {
+              id
+            }
+          }
+        }
+      }
+      linkingIssues: issues(filterBy: {linksIssues: true}) {
+        nodes {
+          id
+          category
+          locations {
+            nodes {
+              id
+            }
+          }
+          linksToIssues {
+            nodes {
+              id
+              category
+              locations {
+                nodes {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
 export const CreateIssueDocument = gql`
     mutation createIssue($title: String!, $body: String, $components: [ID!]!, $startDate: Date, $dueDate: Date) {
   createIssue(
@@ -5354,6 +5429,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     addComponentToProject(variables: AddComponentToProjectMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddComponentToProjectMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<AddComponentToProjectMutation>(AddComponentToProjectDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addComponentToProject');
+    },
+    getIssueGraphData(variables: GetIssueGraphDataQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetIssueGraphDataQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetIssueGraphDataQuery>(GetIssueGraphDataDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getIssueGraphData');
     },
     createIssue(variables: CreateIssueMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CreateIssueMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<CreateIssueMutation>(CreateIssueDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'createIssue');

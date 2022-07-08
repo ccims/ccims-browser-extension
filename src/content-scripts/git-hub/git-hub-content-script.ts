@@ -2,6 +2,7 @@ import Vue from "vue";
 import RelatedIssues from "@/components/git-hub/RelatedIssueList.vue";
 import ActiveProjects from "@/components/git-hub/ActiveProjects.vue";
 import ProjectList from "@/components/git-hub/ProjectList.vue";
+import ComponentGraph from "@/components/git-hub/ComponentGraph.vue";
 import { getCCIMSApi } from "@/data/CCIMSApi";
 import { Issue } from "@/generated/graphql";
 
@@ -10,7 +11,14 @@ declare global {
     RelatedIssues: any;
     ActiveProjects: any;
     ProjectList: any;
+    ComponentGraph: any;
   }
+}
+
+import "@webcomponents/webcomponentsjs/webcomponents-bundle";
+import GraphEditor from "@ustutt/grapheditor-webcomponent/lib/grapheditor";
+if (!customElements.get("custom-graph-editor")) {
+  customElements.define("custom-graph-editor", GraphEditor);
 }
 
 // inititialize browser storage
@@ -22,6 +30,34 @@ setActiveIssue();
 addRelIssueList();
 addActiveProjects();
 addProjectList();
+addComponentGraph();
+
+function addComponentGraph(): void {
+  if (document.getElementById("component-graph-container") === null) {
+    let element = document.querySelector(".Layout-main .file-navigation ~ .Box");
+    let issueMode = false;
+    if (element === null) {
+      issueMode = true;
+      element = document.querySelector("#show_issue .Layout-main");
+    }
+    if (element !== null) {
+      window.ComponentGraph = Vue.extend(ComponentGraph);
+      const vue = new window.ComponentGraph();
+      vue.issueMode = issueMode;
+      const container = document.createElement("div");
+      container.id = "component-graph-container";
+
+      if (issueMode) {
+        element.prepend(container);
+      } else {
+        const parent = element.parentElement!;
+        parent.insertBefore(container, element);
+      }
+
+      vue.$mount("#component-graph-container");
+    }
+  }
+}
 
 /**
  * Adds the project list to the side bar of GitHub iff div-element with class "BorderGrid BorderGrid--spacious" exists.

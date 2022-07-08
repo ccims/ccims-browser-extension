@@ -1,4 +1,4 @@
-import { getSdk, Sdk, Project, Issue, Component } from "@/generated/graphql";
+import { getSdk, Sdk, Project, Issue, Component, GetIssueGraphDataQuery } from "@/generated/graphql";
 import { GraphQLClient } from "graphql-request";
 
 interface ComponentInformation {
@@ -130,6 +130,10 @@ function getSdkWrapper(sdk: Sdk) {
       )[0];
       const components = project?.components!.nodes;
       return components as Component[];
+    },
+    async getIssueGraphData(projectId: string): Promise<GetIssueGraphDataQuery> {
+      const project = await sdk.getIssueGraphData({ projectId: projectId })
+      return project as GetIssueGraphDataQuery
     },
   };
 }
