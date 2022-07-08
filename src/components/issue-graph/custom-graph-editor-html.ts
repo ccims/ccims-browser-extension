@@ -31,10 +31,6 @@ svg.my-svg {
       transition: transform 0.25s ease-out;
     }
 
-    .edge-group .link-handle {
-      display: initial;
-    }
-
     .link-handle:hover {
       opacity: 0.7;
     }
@@ -77,10 +73,6 @@ svg.my-svg {
 
     .dropzone:hover {
       opacity: 1;
-    }
-
-    .component.hovered .link-handle {
-      display: initial;
     }
 
     .node.component rect {
