@@ -76,7 +76,7 @@ svg.my-svg {
     }
 
     .node.component rect {
-      fill: #096dd9;
+      fill: white;
       stroke: black;
       stroke-width: 1.5;
       fill-opacity: 0.5;
@@ -157,7 +157,7 @@ svg.my-svg {
 
     <!-- Component container -->
     <g id="component" data-template-type="node">
-      <rect width="100" height="60" rx="10" ry="10" x="-50" y="-30" data-link-handles="edges"></rect>
+      <rect width="100" height="60" x="-50" y="-30" data-link-handles="edges"></rect>
       <text
         class="component-name text"
         data-content="title"
